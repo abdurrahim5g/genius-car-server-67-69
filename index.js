@@ -3,7 +3,6 @@ const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
-
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -20,33 +19,17 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(403).send({ message: "Unauthorize access" });
-  }
-  const token = authHeader.split(" ")[1];
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decode) => {
-    if (err) {
-      res.status(403).send({ message: "Unauthorize access" });
-    }
-    req.decode = decode;
-    next();
-    // console.log(err, decode);
-  });
-  //   console.log(token);
-};
-
 async function run() {
   try {
     const serviceCollection = client.db("geniusCar").collection("services");
     const orderCollection = client.db("geniusCar").collection("orders");
 
-    app.post("/jwt", async (req, res) => {
-      const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+    app.post("/jwt", (req, res) => {
+      const currentUser = req.body;
+      const token = jwt.sign(currentUser, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: "1h",
       });
+      // console.log(token);
       res.send({ token });
     });
 
@@ -65,13 +48,13 @@ async function run() {
     });
 
     // orders api
-    app.get("/orders", verifyToken, async (req, res) => {
-      const decode = req.decode;
-      console.log("Inside order api", decode);
+    app.get("/orders", async (req, res) => {
+      // const decode = req.decode;
+      // console.log("Inside order api", decode);
 
-      if (decode.email !== req.query.email) {
-        return res.status(403).send({ message: "Unauthorized access" });
-      }
+      // if (decode.email !== req.query.email) {
+      //   return res.status(403).send({ message: "Unauthorized access" });
+      // }
 
       let query = {};
 
